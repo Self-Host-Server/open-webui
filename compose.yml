@@ -1,0 +1,19 @@
+# OpenWebUI pointed at OmniRoute.
+# The API key is read from your shell environment at `docker compose up` time —
+# it is never stored in this file. ANTHROPIC_API_KEY is already exported in your
+# shell (Claude Code uses it for the same gateway), so no extra setup is needed.
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    environment:
+      OPENAI_API_BASE_URL: http://192.168.1.245:20128/v1
+      OPENAI_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in your shell first}
+    volumes:
+      - open-webui:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  open-webui:
