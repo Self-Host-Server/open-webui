@@ -1,19 +1,29 @@
-# OpenWebUI pointed at OmniRoute.
+# Hugging Face Chat UI pointed at OmniRoute.
 # The API key is read from your shell environment at `docker compose up` time —
 # it is never stored in this file. ANTHROPIC_API_KEY is already exported in your
 # shell (Claude Code uses it for the same gateway), so no extra setup is needed.
 services:
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:main
-    container_name: open-webui
+  chat-ui:
+    image: ghcr.io/huggingface/chat-ui:latest
+    container_name: chat-ui
     ports:
-      - "3000:8080"
+      - "3000:3000"
     environment:
-      OPENAI_API_BASE_URL: http://192.168.1.245:20128/v1
+      OPENAI_BASE_URL: ${OMNIROUTE_BASE_URL}
       OPENAI_API_KEY: ${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY in your shell first}
+      MONGODB_URL: mongodb://mongo:27017
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  mongo:
+    # Pinned to 7.0: mongo:latest (8.x) crashes on kernel 6.19–7.0.13 due to a
+    # TCMalloc/kernel incompatibility (MongoDB SERVER-121912); 7.0 predates it.
+    image: mongo:7.0
+    container_name: chat-ui-mongo
     volumes:
-      - open-webui:/app/backend/data
+      - mongo-data:/data/db
     restart: unless-stopped
 
 volumes:
-  open-webui:
+  mongo-data:
